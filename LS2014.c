@@ -978,6 +978,7 @@ void txbin8 ( unsigned char c )
 
 int check_red_button(void) {
     int s;
+    int cur_address;
     red_led_timer = 1;
     ms(2);
     RED_LED = 1;
@@ -985,7 +986,7 @@ int check_red_button(void) {
     TRISCbits.TRISC2 = 1;
     if ((PORTC & 0b00000100) == 0) {
 
-        Si4705_SEEK();
+//        Si4705_SEEK();
         //s=Si4705_TUNE_STATUS();
         // wait for release
 
@@ -993,12 +994,44 @@ int check_red_button(void) {
             continue;
         }
         ms(2000);
-        s=Si4705_TUNE_STATUS();
+//        s=Si4705_TUNE_STATUS();
+/*
+        cur_address = ee_read16(freq_address);
+        if (cur_address == ee_read16(tone1_address))
+            s = ee_read16(tone2_address);
+        else if (cur_address == ee_read16(tone2_address))
+            s = ee_read16(tone3_address);
+        else if (cur_address == ee_read16(tone3_address))
+            s = ee_read16(tone4_address);
+        else if (cur_address == ee_read16(tone4_address))
+            s = ee_read16(tone5_address);
+        else if (cur_address == ee_read16(tone5_address))
+            s = ee_read16(tone6_address);
+        else if (cur_address == ee_read16(tone6_address))
+        s = ee_read16(tone1_address);*/
+
+        cur_address = ee_read16(freq_address);
+        tx('F');
+        print_frequency(cur_address);
+
+        if (cur_address == 10000)
+            s = 10050;
+        else if (cur_address == 10050)
+            s = 10100;
+        else if (cur_address == 10100)
+            s = 10150;
+        else if (cur_address == 10150)
+            s = 10200;
+        else if (cur_address == 10200)
+            s = 10000;
+
         crlf();
         tx('F');
         tx('=');
         print_frequency(s);
         if (save_station==1) { ee_write16(s,freq_address); }
+
+        tx('T'); Tune(ee_read8(antenna_type_address),ee_read16(freq_address));
     }
     TRISCbits.TRISC2 = 0;
 }
@@ -1250,92 +1283,92 @@ void check_bm ( unsigned char row )
 }
 
 void RDS_Process(void) {
-    Si4705_RDS_STATUS(); // result in A[],B[],C[],D[]
+    /* Si4705_RDS_STATUS(); // result in A[],B[],C[],D[] */
 
-    if (GROUP == 6) {
-        refresh_addresses();
+    /* if (GROUP == 6) { */
+    /*     refresh_addresses(); */
        
-        if ((ADDR==0xffff)||(ADDR==SERIAL)     || \
-            (ADDR==G1)||(ADDR==G2)||(ADDR==G3) || \
-            (ADDR==G4)||(ADDR==G5)||(ADDR==G6) 
-           )
-            {
-            switch (CMD) {
-                case 0u: break; // null command does nothing
-                case 1u: break; // reserved for KW2012 version
-                case 2u: break; // reserved for KW2012 version
-                case 3u: enable_goertzel = 0;
-                    blank_pattern();
-                    auto_off = 10 * DATA;
-                    pwm = 255u;
-                    break;
-                case 4u: enable_goertzel = 0;
-                    auto_off = 10 * DATA;
-                    if (auto_off == 0) {
-                        pwm = 0;
-                    }
-                    break;
-                case 5u: set_tone(ADDR, DATA);
-                    refresh_addresses();
-                    break;
-                case 6u: ee_write16(DATA, threshold_address);
-                    refresh_addresses();
-                    break;
-                case 7u: ee_write16(DATA, hysteresis_address);
-                    refresh_addresses();
-                    break;
-                case 8u: Si4705_TUNE(DATA);
-                    refresh_addresses();
-                    break;
-                case 9u: enable_goertzel = 1;
-                    pwm_off(1);
-                    break;
-                case 10u: enable_goertzel = 0;
-                    blank_pattern();
-                    pwm_off(1);
-                    break;
-                case 11u: enable_fade = 1;
-                    set_data();
-                    blank_pattern();
-                    pwm_off(1);
-                    fade_in = data_hi;
-                    fade_out = data_lo;
-                    break;
+    /*     if ((ADDR==0xffff)||(ADDR==SERIAL)     || \ */
+    /*         (ADDR==G1)||(ADDR==G2)||(ADDR==G3) || \ */
+    /*         (ADDR==G4)||(ADDR==G5)||(ADDR==G6)  */
+    /*        ) */
+    /*         { */
+    /*         switch (CMD) { */
+    /*             case 0u: break; // null command does nothing */
+    /*             case 1u: break; // reserved for KW2012 version */
+    /*             case 2u: break; // reserved for KW2012 version */
+    /*             case 3u: enable_goertzel = 0; */
+    /*                 blank_pattern(); */
+    /*                 auto_off = 10 * DATA; */
+    /*                 pwm = 255u; */
+    /*                 break; */
+    /*             case 4u: enable_goertzel = 0; */
+    /*                 auto_off = 10 * DATA; */
+    /*                 if (auto_off == 0) { */
+    /*                     pwm = 0; */
+    /*                 } */
+    /*                 break; */
+    /*             case 5u: set_tone(ADDR, DATA); */
+    /*                 refresh_addresses(); */
+    /*                 break; */
+    /*             case 6u: ee_write16(DATA, threshold_address); */
+    /*                 refresh_addresses(); */
+    /*                 break; */
+    /*             case 7u: ee_write16(DATA, hysteresis_address); */
+    /*                 refresh_addresses(); */
+    /*                 break; */
+    /*             case 8u: Si4705_TUNE(DATA); */
+    /*                 refresh_addresses(); */
+    /*                 break; */
+    /*             case 9u: enable_goertzel = 1; */
+    /*                 pwm_off(1); */
+    /*                 break; */
+    /*             case 10u: enable_goertzel = 0; */
+    /*                 blank_pattern(); */
+    /*                 pwm_off(1); */
+    /*                 break; */
+    /*             case 11u: enable_fade = 1; */
+    /*                 set_data(); */
+    /*                 blank_pattern(); */
+    /*                 pwm_off(1); */
+    /*                 fade_in = data_hi; */
+    /*                 fade_out = data_lo; */
+    /*                 break; */
 
-                case 12u: enable_fade = 0;
-                    blank_pattern();
-                    pwm_off(1);
-                    fade_in = 1;
-                    fade_out = 1;
-                    break;
-                case 13u: new_pattern(1);
-                    break; // blink
-                case 14u: new_pattern(2);
-                    break; // breath
-                case 15u: new_pattern(3);
-                    break; // sparkle
-                case 16u: new_pattern(4);
-                    break; // twinkle
-                case 17u: pattern = 0;
-                    blank_pattern();
-                    pwm_off(1);
-                    break;
+    /*             case 12u: enable_fade = 0; */
+    /*                 blank_pattern(); */
+    /*                 pwm_off(1); */
+    /*                 fade_in = 1; */
+    /*                 fade_out = 1; */
+    /*                 break; */
+    /*             case 13u: new_pattern(1); */
+    /*                 break; // blink */
+    /*             case 14u: new_pattern(2); */
+    /*                 break; // breath */
+    /*             case 15u: new_pattern(3); */
+    /*                 break; // sparkle */
+    /*             case 16u: new_pattern(4); */
+    /*                 break; // twinkle */
+    /*             case 17u: pattern = 0; */
+    /*                 blank_pattern(); */
+    /*                 pwm_off(1); */
+    /*                 break; */
 
-                default: break;
-            }
-        }
-        // bit map command handler no address check for bitmap, since the address
-        // is used for top 16 bits of data
-        if (bitmap_enable) {
-            switch (CMD) {
-                     case 20u:  check_bm(0);   break;
-                     case 21u:  check_bm(1);   break;
-                     case 22u:  check_bm(2);   break;
-                     case 23u:  check_bm(3);   break;
-                    default: break;
-            }
-        }
-    }
+    /*             default: break; */
+    /*         } */
+    /*     } */
+    /*     // bit map command handler no address check for bitmap, since the address */
+    /*     // is used for top 16 bits of data */
+    /*     if (bitmap_enable) { */
+    /*         switch (CMD) { */
+    /*                  case 20u:  check_bm(0);   break; */
+    /*                  case 21u:  check_bm(1);   break; */
+    /*                  case 22u:  check_bm(2);   break; */
+    /*                  case 23u:  check_bm(3);   break; */
+    /*                 default: break; */
+    /*         } */
+    /*     } */
+    /* } */
 }
 
 unsigned char rand(void) {
