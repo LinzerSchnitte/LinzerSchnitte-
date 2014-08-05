@@ -1355,6 +1355,7 @@ unsigned int random(unsigned int x) {
 void pattern_handler ( void)
 {
     int p;
+    int p2;
     if (pattern == 1) { // blink
         if (pattern_complete) {
             on_time = data_hi;
@@ -1367,9 +1368,9 @@ void pattern_handler ( void)
     if (pattern == 2) { // breath
         if (pattern_complete) {
             on_time = 1;
-            off_time = data_lo * 10;
-            ramp_dn_time = data_hi * 10;
-            ramp_up_time = data_hi * 10;
+            off_time = data_lo;
+            ramp_dn_time = data_lo;
+            ramp_up_time = data_hi;
             pwm_on(ramp_up_time);
         }
     }
@@ -1385,10 +1386,11 @@ void pattern_handler ( void)
     if (pattern == 4) { // twinkle
         if (pattern_complete) {
             p = random(data_hi);
+            p2 = random(data_lo);
             on_time = 1;
-            off_time = random(data_lo);
-            ramp_up_time = p / 2;
-            ramp_dn_time = p / 2;
+            off_time = p2;
+            ramp_up_time = p;
+            ramp_dn_time = p2;
             pwm_on(ramp_up_time);
         }
     }
